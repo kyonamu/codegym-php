@@ -195,7 +195,9 @@ function makeLink($value)
                                         $count_rt_posts = $db->prepare('SELECT COUNT(retweet_post_id) as cnt FROM posts WHERE retweet_post_id=?');
                                         $count_rt_posts->execute(array($post['id']));
                                         $ful_post = $count_rt_posts->fetch();
-                                        echo $ful_post['cnt'];
+                                        if ($ful_post['cnt'] > 0) {
+                                            echo $ful_post['cnt'];
+                                        }
                                     }
                                     ?>
                                     <!-- rt先のrt数 -->
@@ -204,7 +206,9 @@ function makeLink($value)
                                         $count_rt_posts = $db->prepare('SELECT COUNT(retweet_post_id) as cnt FROM posts WHERE retweet_post_id=?');
                                         $count_rt_posts->execute(array($post['retweet_post_id']));
                                         $ful_post = $count_rt_posts->fetch();
-                                        echo $ful_post['cnt'];
+                                        if ($ful_post['cnt'] > 0) {
+                                            echo $ful_post['cnt'];
+                                        }
                                     }
                                     ?>
                                 </span>
