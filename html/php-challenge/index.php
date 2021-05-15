@@ -179,9 +179,9 @@ function makeLink($value)
                                     <?php endif; ?>
                                     <!-- rt先 -->
                                     <?php
-                                    $rts = $db->prepare('SELECT COUNT(*) FROM posts WHERE member_id=? AND retweet_post_id=?');
-                                    $rts->execute(array($_SESSION['id'], $post['id']));
-                                    $rt_record = $rts->fetch();
+                                    $rts_count = $db->prepare('SELECT COUNT(*) FROM posts WHERE member_id=? AND retweet_post_id=?');
+                                    $rts_count->execute(array($_SESSION['id'], $post['id']));
+                                    $rt_record = $rts_count->fetch();
                                     ?>
                                     <?php if ((int)$post['retweet_post_id'] > 0) : ?>
                                         <?php if ($_SESSION['id'] === $post['member_id']) : ?>
@@ -219,18 +219,18 @@ function makeLink($value)
                                 </span>
                                 <!-- いいね機能 -->
                                 <?php
-                                $favorites = $db->prepare('SELECT COUNT(*) AS cnt FROM favorites WHERE post_id=? AND member_id=?');
-                                $favorites->execute(array($post['id'], $_SESSION['id']));
-                                $fav = $favorites->fetch();
+                                $favorites_count = $db->prepare('SELECT COUNT(*) AS cnt FROM favorites WHERE post_id=? AND member_id=?');
+                                $favorites_count->execute(array($post['id'], $_SESSION['id']));
+                                $fav = $favorites_count->fetch();
                                 ?>
                                 <!-- rt時のいいね機能 -->
                                 <?php
-                                $rt_favorites = $db->prepare('SELECT COUNT(*) AS cnt FROM favorites WHERE member_id=? AND post_id=?');
-                                $rt_favorites->execute(array(
+                                $rt_favorites_count = $db->prepare('SELECT COUNT(*) AS cnt FROM favorites WHERE member_id=? AND post_id=?');
+                                $rt_favorites_count->execute(array(
                                     $_SESSION['id'],
                                     $post['retweet_post_id']
                                 ));
-                                $rt_fav = $rt_favorites->fetch();
+                                $rt_fav = $rt_favorites_count->fetch();
                                 ?>
                                 <?php
                                 $favorites_id = $db->prepare('SELECT member_id FROM favorites WHERE post_id=?');
@@ -291,7 +291,7 @@ function makeLink($value)
                                 endif;
                                 ?>
                                 <?php
-                                if ($_SESSION['id'] == $post['member_id']) :
+                                if ($_SESSION['id'] === $post['member_id']) :
                                 ?>
                                     [<a href="delete.php?id=<?php echo h($post['id']); ?>" style="color: #F33;">削除</a>]
                                 <?php

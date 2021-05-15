@@ -5,9 +5,9 @@ require('dbconnect.php');
 if (isset($_SESSION['id'])) {
   $id = $_REQUEST['id'];
 
-  $favs = $db->prepare('SELECT COUNT(*) as cnt FROM favorites WHERE member_id=? AND post_id=?');
-  $favs->execute(array($_SESSION['id'], $id));
-  $fav = $favs->fetch();
+  $favs_count = $db->prepare('SELECT COUNT(*) as cnt FROM favorites WHERE member_id=? AND post_id=?');
+  $favs_count->execute(array($_SESSION['id'], $id));
+  $fav = $favs_count->fetch();
 
   if ((int)$fav['cnt'] === 0) {
     $favorites_in = $db->prepare('INSERT INTO favorites SET member_id=?, post_id=?, created=NOW()');
