@@ -22,7 +22,7 @@ if (isset($_REQUEST['rt'])) {
     $rts = $db->prepare('SELECT count(retweet_post_id) as cnt FROM posts WHERE member_id=? AND retweet_post_id=?');
     $rts->execute(array($_SESSION['id'], $id));
     $rt = $rts->fetch();
-    if ($rt['cnt'] == 0) {
+    if ((int)$rt['cnt'] === 0) {
         $retweet = $db->prepare('INSERT INTO posts SET member_id=?,retweet_post_id=?,created=NOW()');
         $retweet->execute(array($_SESSION['id'], $id));
     } else {
@@ -64,7 +64,7 @@ if (!empty($_POST)) {
 
 // 投稿を取得する
 $page = $_REQUEST['page'];
-if ($page == '') {
+if ($page === '') {
     $page = 1;
 }
 $page = max($page, 1);
@@ -151,7 +151,7 @@ function makeLink($value)
                 $rt_post = $rt_on->fetch();
                 ?>
                 <div class="msg">
-                    <?php if ($post['retweet_post_id'] == 0) : ?>
+                    <?php if ((int)$post['retweet_post_id'] === 0) : ?>
                         <img src="member_picture/<?php echo h($post['picture']); ?>" width="48" height="48" alt="<?php echo h($post['name']); ?>" />
                         <p><?php echo makeLink(h($post['message'])); ?><span class="name">（<?php echo h($post['name']); ?>）</span>
                         <?php else : ?>
