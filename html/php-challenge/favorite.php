@@ -9,7 +9,7 @@ if (isset($_SESSION['id'])) {
   $favs->execute(array($_SESSION['id'], $id));
   $fav = $favs->fetch();
 
-  if ($fav['cnt'] == 0) {
+  if ((int)$fav['cnt'] === 0) {
     $favorites_in = $db->prepare('INSERT INTO favorites SET member_id=?, post_id=?, created=NOW()');
     $favorites_in->execute(array($_SESSION['id'], $id));
   } else {

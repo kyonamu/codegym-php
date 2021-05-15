@@ -19,15 +19,15 @@ if (isset($_SESSION['id']) && $_SESSION['time'] + 3600 > time()) {
 if (isset($_REQUEST['rt'])) {
     $id = $_REQUEST['rt'];
 
-    $rts = $db->prepare('SELECT count(retweet_post_id) as cnt FROM posts WHERE retweet_post_id=?');
-    $rts->execute(array($id));
+    $rts = $db->prepare('SELECT count(retweet_post_id) as cnt FROM posts WHERE member_id=? AND retweet_post_id=?');
+    $rts->execute(array($_SESSION['id'], $id));
     $rt = $rts->fetch();
     if ($rt['cnt'] == 0) {
         $retweet = $db->prepare('INSERT INTO posts SET member_id=?,retweet_post_id=?,created=NOW()');
         $retweet->execute(array($_SESSION['id'], $id));
     } else {
-        $retweet_del = $db->prepare('DELETE FROM posts WHERE retweet_post_id=?');
-        $retweet_del->execute(array($id));
+        $retweet_del = $db->prepare('DELETE FROM posts WHERE member_id=? AND retweet_post_id=?');
+        $retweet_del->execute(array($_SESSION['id'], $id));
     }
     header('Location:index.php');
     exit();
@@ -51,7 +51,7 @@ if (isset($_REQUEST['rt_on'])) {
 // 投稿を記録する
 if (!empty($_POST)) {
     if ($_POST['message'] != '') {
-        $message = $db->prepare('INSERT INTO posts SET member_id=?, message=?, reply_post_id=?,created=NOW()');
+        $message = $db->prepare('INSERT INTO posts SET member_id=?, message=?, reply_post_id=?, created=NOW()');
         $message->execute(array(
             $member['id'],
             $_POST['message'],
@@ -166,8 +166,8 @@ function makeLink($value)
                                 <!-- 課題：リツイートといいね機能の実装 -->
                                 <span class="retweet">
                                     <!-- rt元 -->
-                                    <?php if ((int)$post['retweet_post_id'] == 0) : ?>
-                                        <?php if ((int)$post['id'] == (int)$retweet_record['retweet_post_id']) : ?>
+                                    <?php if ((int)$post['retweet_post_id'] === 0) : ?>
+                                        <?php if ((int)$post['id'] === (int)$retweet_record['retweet_post_id']) : ?>
                                             <a href="index.php?rt=<?php echo h($post['id']); ?>">
                                                 <img class="retweet-image" src="images/retweet-solid-blue.svg"><span style="color:gray;"></span>
                                             </a>
@@ -178,8 +178,13 @@ function makeLink($value)
                                         <?php endif; ?>
                                     <?php endif; ?>
                                     <!-- rt先 -->
+                                    <?php
+                                    $rts = $db->prepare('SELECT COUNT(*) FROM posts WHERE member_id=? AND retweet_post_id=?');
+                                    $rts->execute(array($_SESSION['id'], $post['id']));
+                                    $rt_record = $rts->fetch();
+                                    ?>
                                     <?php if ((int)$post['retweet_post_id'] > 0) : ?>
-                                        <?php if ((int)$post['retweet_post_id'] > 0) : ?>
+                                        <?php if ($_SESSION['id'] === $post['member_id']) : ?>
                                             <a href="index.php?rt_on=<?php echo h($post['id']); ?>">
                                                 <img class="retweet-image" src="images/retweet-solid-blue.svg"><span style="color:gray;"></span>
                                             </a>
@@ -191,7 +196,7 @@ function makeLink($value)
                                     <?php endif; ?>
                                     <!-- rt元のrt数 -->
                                     <?php
-                                    if ((int)$post['retweet_post_id'] == 0) {
+                                    if ((int)$post['retweet_post_id'] === 0) {
                                         $count_rt_posts = $db->prepare('SELECT COUNT(retweet_post_id) as cnt FROM posts WHERE retweet_post_id=?');
                                         $count_rt_posts->execute(array($post['id']));
                                         $ful_post = $count_rt_posts->fetch();
@@ -214,8 +219,8 @@ function makeLink($value)
                                 </span>
                                 <!-- いいね機能 -->
                                 <?php
-                                $favorites = $db->prepare('SELECT COUNT(*) AS cnt FROM favorites WHERE post_id=?');
-                                $favorites->execute(array($post['id']));
+                                $favorites = $db->prepare('SELECT COUNT(*) AS cnt FROM favorites WHERE post_id=? AND member_id=?');
+                                $favorites->execute(array($post['id'], $_SESSION['id']));
                                 $fav = $favorites->fetch();
                                 ?>
                                 <!-- rt時のいいね機能 -->
@@ -227,9 +232,14 @@ function makeLink($value)
                                 ));
                                 $rt_fav = $rt_favorites->fetch();
                                 ?>
+                                <?php
+                                $favorites_id = $db->prepare('SELECT member_id FROM favorites WHERE post_id=?');
+                                $favorites_id->execute(array($post['id']));
+                                $favorite_id = $favorites_id->fetch();
+                                ?>
                                 <span class="favorite">
                                     <!-- rt元 -->
-                                    <?php if ((int)$post['retweet_post_id'] == 0) : ?>
+                                    <?php if ((int)$post['retweet_post_id'] === 0) : ?>
                                         <?php if ($fav['cnt'] != 0) : ?>
                                             <a href="favorite.php?id=<?php echo h($post['id']); ?>"><img class="favorite-image" src="images/heart-solid-red.svg"><span style="color:gray;"></span></a>
                                         <?php else : ?>
@@ -239,14 +249,14 @@ function makeLink($value)
                                     <!-- rt先 -->
                                     <?php if ((int)$post['retweet_post_id'] > 0) : ?>
                                         <?php if ($rt_fav['cnt'] != 0) : ?>
-                                            <a href="favorite.php?id=<?php echo h($post['id']); ?>"><img class="favorite-image" src="images/heart-solid-red.svg"><span style="color:gray;"></span></a>
+                                            <a href="favorite.php?id=<?php echo h($post['retweet_post_id']); ?>"><img class="favorite-image" src="images/heart-solid-red.svg"><span style="color:gray;"></span></a>
                                         <?php else : ?>
-                                            <a href="favorite.php?id=<?php echo h($post['id']); ?>"><img class="favorite-image" src="images/heart-solid-gray.svg"><span style="color:gray;"></span></a>
+                                            <a href="favorite.php?id=<?php echo h($post['retweet_post_id']); ?>"><img class="favorite-image" src="images/heart-solid-gray.svg"><span style="color:gray;"></span></a>
                                         <?php endif; ?>
                                     <?php endif; ?>
                                     <!-- rtされてない時のfavo数 -->
                                     <?php
-                                    if ((int)$post['retweet_post_id'] == 0) {
+                                    if ((int)$post['retweet_post_id'] === 0) {
                                         $cnt = $db->prepare('SELECT COUNT(*) AS cnt FROM favorites WHERE post_id=?');
                                         $cnt->execute(array($post['id']));
                                         $fav_cnt = $cnt->fetch();
